@@ -43,7 +43,7 @@ jobs:
         run: mvn -B clean package -DskipTests
 
       - name: Make scripts executable
-        run: chmod +x ./lambda-deploy.sh ./custom-manage.sh
+        run: chmod +x ./deploy-lambda.sh ./custom-manage.sh
 
       - name: Create or Update via scripts
         shell: bash
