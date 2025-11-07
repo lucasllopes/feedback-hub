@@ -6,7 +6,7 @@ on:
     paths:
       - 'src/**'
       - 'pom.xml'
-      - 'lambda-deploy.sh'
+      - 'deploy-lambda.sh'
       - 'custom-manage.sh'
   workflow_dispatch: {}
 
@@ -61,4 +61,4 @@ jobs:
             cmd="create"
             echo "Funcao nao existe... executando create!"
           fi
-          ./lambda-deploy.sh "$cmd"
+          ./deploy-lambda.sh "$cmd"
