@@ -22,9 +22,6 @@ if [[ "$CMD" == "help" ]]; then
   usage; exit 0
 fi
 
-echo "Gerando pacote..."
-mvn clean package -DskipTests
-
 if [[ ! -f "${TARGET_DIR}/function.zip" ]]; then
   echo "ZIP não encontrado em ${TARGET_DIR}/function.zip. Verifique o build."
   exit 1
