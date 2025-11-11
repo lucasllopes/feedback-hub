@@ -1,9 +1,15 @@
 package com.fiap.model;
 
+import jakarta.validation.constraints.NotBlank;
+import org.eclipse.microprofile.graphql.NonNull;
+
 public class FeedbackRequest {
 
+    @NotBlank(message="Email não pode ser vazio")
     private String email;
+    @NotBlank(message="Descrição não pode ser vazia")
     private String descricao;
+    @NotBlank(message="Nota não pode ser vazia")
     private Integer nota;
 
     public FeedbackRequest() {}
