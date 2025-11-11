@@ -35,7 +35,7 @@ public class FeedbackIngressLambda implements RequestHandler<FeedbackRequest, St
         ));
 
         String resposta = String.format(
-                "Feedback recebido::::: STEP1.1 ->  email=%s | nota=%d | descricao=\"%s\"",
+                "Feedback recebido::::: STEP1.2 > Linux > ->  email=%s | nota=%d | descricao=\"%s\"",
                 input.getEmail(), input.getNota(), input.getDescricao()
         );
 
