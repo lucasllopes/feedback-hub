@@ -5,7 +5,7 @@ MANAGE_SCRIPT="./custom-manage.sh"
 
 # Variáveis que o custom-manage.sh vai consumir
 export FUNCTION_NAME="FeedbackIngressLambda"
-export HANDLER="com.fiap.lambda.FeedbackIngressLambda::handleRequest"
+export HANDLER="io.quarkus.amazon.lambda.runtime.QuarkusStreamHandler::handleRequest"
 export RUNTIME="java21"
 export AWS_REGION="sa-east-1"
 export LAMBDA_ROLE_ARN="arn:aws:iam::992382492436:role/FeedbackHubLambdaExecutionRole"
@@ -34,7 +34,7 @@ fi
 
 chmod +x "${MANAGE_SCRIPT}"
 
-echo "🚀 Executando Lambda '${CMD}' via ${MANAGE_SCRIPT}"
+echo "Executando Lambda '${CMD}' via ${MANAGE_SCRIPT}"
 ./custom-manage.sh "${CMD}"
 
 echo "Operação concluída!"

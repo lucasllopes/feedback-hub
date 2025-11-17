@@ -1,5 +1,7 @@
 package com.fiap.model;
 
+import java.time.LocalDateTime;
+
 public class FeedbackEvent {
 
     private String email;
@@ -7,6 +9,7 @@ public class FeedbackEvent {
     private Integer nota;
     private String correlationId;
     private String step;
+    private final LocalDateTime timestamp;
 
     public FeedbackEvent(FeedbackRequest req, String correlationId, String sagaStep) {
         this.email = req.getEmail();
@@ -14,6 +17,7 @@ public class FeedbackEvent {
         this.nota = req.getNota();
         this.correlationId = correlationId;
         this.step = sagaStep;
+        this.timestamp = LocalDateTime.now();
     }
 
     public String getEmail() {
@@ -54,5 +58,9 @@ public class FeedbackEvent {
 
     public void setStep(String step) {
         this.step = step;
+    }
+
+    public LocalDateTime getTimestamp() {
+        return timestamp;
     }
 }

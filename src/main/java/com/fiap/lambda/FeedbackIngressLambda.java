@@ -3,21 +3,38 @@ package com.fiap.lambda;
 import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.LambdaLogger;
 import com.amazonaws.services.lambda.runtime.RequestHandler;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fiap.model.FeedbackEvent;
+import com.fiap.model.FeedbackOutput;
 import com.fiap.model.FeedbackRequest;
+import com.fiap.service.QueueService;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
 
 import java.util.UUID;
 
-public class FeedbackIngressLambda implements RequestHandler<FeedbackRequest, String> {
+@Named("feedbackIngress")
+@ApplicationScoped
+public class FeedbackIngressLambda implements RequestHandler<FeedbackRequest, FeedbackOutput> {
+
+    private final QueueService queueService;
+    private final ObjectMapper objectMapper;
+
+    @Inject
+    public FeedbackIngressLambda(QueueService queueService, ObjectMapper objectMapper) {
+        this.queueService = queueService;
+        this.objectMapper = objectMapper;
+    }
 
     @Override
-    public String handleRequest(FeedbackRequest input, Context context) {
+    public FeedbackOutput handleRequest(FeedbackRequest input, Context context) {
 
         LambdaLogger log = context.getLogger();
 
         if (input == null) {
             log.log("WARN: payload nulo recebido\n");
-            return "payload-invalido";
+            return new FeedbackOutput("", "Payload nulo recebido", "");
         }
 
         String correlationId = UUID.randomUUID().toString();
@@ -34,11 +51,22 @@ public class FeedbackIngressLambda implements RequestHandler<FeedbackRequest, St
                 event.getDescricao()
         ));
 
-        String resposta = String.format(
-                "Feedback recebido::::: STEP1.1 ->  email=%s | nota=%d | descricao=\"%s\"",
-                input.getEmail(), input.getNota(), input.getDescricao()
-        );
+        String bodyJson;
 
-        return resposta;
+        try {
+            bodyJson = objectMapper.writeValueAsString(event);
+        } catch (Exception e) {
+            throw new RuntimeException("Erro serializando evento para JSON", e);
+        }
+
+        var response = queueService.sendMessage(bodyJson);
+
+        log.log("Mensagem enviada para a fila SQS com ID: " + response.messageId() + "\n");
+
+        return new FeedbackOutput(
+                correlationId,
+                sagaStep + " - " + input.getDescricao() + " - " + input.getNota(),
+                response.messageId()
+        );
     }
 }
