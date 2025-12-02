@@ -15,5 +15,8 @@ Default output format: json
 
 Apos configurar o AWS CLI, voce podera utilizar o script deploy-lambda.sh para realizar o deploy na AWS.
 
+Para rodar o shell script é necessário estar na pasta do projeto usando o wsl e executar um mvn clean package
+após isso é possível publicar ou atualizar a lambda
+
 exemplo: ./deploy-lambda.sh create ou ./deploy-lambda.sh update
 É necessario que o comando seja executado a partir do linux ou wsl.

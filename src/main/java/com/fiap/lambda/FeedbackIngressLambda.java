@@ -4,6 +4,7 @@ import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.LambdaLogger;
 import com.amazonaws.services.lambda.runtime.RequestHandler;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fiap.exception.ErrorEvent;
 import com.fiap.model.FeedbackEvent;
 import com.fiap.model.FeedbackOutput;
 import com.fiap.model.FeedbackRequest;
@@ -11,12 +12,18 @@ import com.fiap.service.QueueService;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
-
+import jakarta.validation.ConstraintViolation;
+import jakarta.validation.Validation;
+import jakarta.validation.Validator;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Named("feedbackIngress")
 @ApplicationScoped
 public class FeedbackIngressLambda implements RequestHandler<FeedbackRequest, FeedbackOutput> {
+
+    private static final Validator VALIDATOR =
+            Validation.buildDefaultValidatorFactory().getValidator();
 
     private final QueueService queueService;
     private final ObjectMapper objectMapper;
@@ -32,9 +39,14 @@ public class FeedbackIngressLambda implements RequestHandler<FeedbackRequest, Fe
 
         LambdaLogger log = context.getLogger();
 
-        if (input == null) {
-            log.log("WARN: payload nulo recebido\n");
-            return new FeedbackOutput("", "Payload nulo recebido", "");
+        var violations = VALIDATOR.validate(input);
+
+        if (!violations.isEmpty()) {
+            String msg = violations.stream()
+                    .map(ConstraintViolation::getMessage)
+                    .collect(Collectors.joining("; "));
+            return new FeedbackOutput("400", "", "", null, "",
+                    "", "", "", msg);
         }
 
         String correlationId = UUID.randomUUID().toString();
@@ -43,12 +55,11 @@ public class FeedbackIngressLambda implements RequestHandler<FeedbackRequest, Fe
         FeedbackEvent event = new FeedbackEvent(input, correlationId, sagaStep);
 
         log.log(String.format(
-                "event=feedback_ingress correlationId=%s sagaStep=%s email=%s nota=%s descricao=%s%n",
+                "event = feedback_ingress:: \n" +
+                        "correlationId = %s \n" +
+                        "sagaStep = %s",
                 event.getCorrelationId(),
-                event.getStep(),
-                event.getEmail(),
-                event.getNota(),
-                event.getDescricao()
+                event.getStep()
         ));
 
         String bodyJson;
@@ -56,17 +67,21 @@ public class FeedbackIngressLambda implements RequestHandler<FeedbackRequest, Fe
         try {
             bodyJson = objectMapper.writeValueAsString(event);
         } catch (Exception e) {
-            throw new RuntimeException("Erro serializando evento para JSON", e);
+            throw new ErrorEvent("Erro serializando evento para JSON");
         }
 
         var response = queueService.sendMessage(bodyJson);
 
         log.log("Mensagem enviada para a fila SQS com ID: " + response.messageId() + "\n");
 
-        return new FeedbackOutput(
-                correlationId,
-                sagaStep + " - " + input.getDescricao() + " - " + input.getNota(),
-                response.messageId()
-        );
+        return new FeedbackOutput("200",
+                event.getNomeAluno(),
+                event.getEmail(),
+                event.getNota(),
+                event.getDescricao(),
+                event.getIdAula(),
+                event.getCorrelationId(),
+                response.messageId(),
+                null);
     }
 }

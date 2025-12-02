@@ -4,6 +4,8 @@ import java.time.LocalDateTime;
 
 public class FeedbackEvent {
 
+    private String idAula;
+    private String nomeAluno;
     private String email;
     private String descricao;
     private Integer nota;
@@ -12,6 +14,8 @@ public class FeedbackEvent {
     private final LocalDateTime timestamp;
 
     public FeedbackEvent(FeedbackRequest req, String correlationId, String sagaStep) {
+        this.nomeAluno = req.getNomeAluno();
+        this.idAula = req.getIdAula();
         this.email = req.getEmail();
         this.descricao = req.getDescricao();
         this.nota = req.getNota();
@@ -62,5 +66,21 @@ public class FeedbackEvent {
 
     public LocalDateTime getTimestamp() {
         return timestamp;
+    }
+
+    public String getNomeAluno() {
+        return nomeAluno;
+    }
+
+    public void setNomeAluno(String nomeAluno) {
+        this.nomeAluno = nomeAluno;
+    }
+
+    public String getIdAula() {
+        return idAula;
+    }
+
+    public void setIdAula(String idAula) {
+        this.idAula = idAula;
     }
 }
